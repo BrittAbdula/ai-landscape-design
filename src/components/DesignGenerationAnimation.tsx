@@ -14,6 +14,8 @@ import {
   Loader2
 } from "lucide-react";
 
+/* eslint-disable prefer-const */
+
 interface AnalysisResult {
   spaceType: string;
   size: string;
