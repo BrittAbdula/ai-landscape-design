@@ -7,32 +7,71 @@ import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Upload, Sparkles, Camera, Palette, Star, Check, ArrowRight, Leaf, Zap, RefreshCw, Menu } from "lucide-react";
 
+interface AnalysisResult {
+  spaceType: string;
+  size: string;
+  existingFeatures: string[];
+  lighting: string;
+  soilType: string;
+  climate: string;
+  challenges: string[];
+  opportunities: string[];
+  recommendations: string[];
+}
+
 // Import our new interactive components
 import FileUpload from "@/components/FileUpload";
 import BeforeAfterSlider from "@/components/BeforeAfterSlider";
 import AILoadingAnimation from "@/components/AILoadingAnimation";
 import AIResults from "@/components/AIResults";
+import StyleSelection from "@/components/StyleSelection";
 
-type AppState = 'home' | 'uploading' | 'analyzing' | 'results';
+type AppState = 'home' | 'uploading' | 'analyzing' | 'style-selection' | 'results';
 
 export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [appState, setAppState] = useState<AppState>('home');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string>('');
+  const [cloudinaryImageUrl, setCloudinaryImageUrl] = useState<string>('');
+  const [selectedStyle, setSelectedStyle] = useState<string>('');
+  const [customPrompt, setCustomPrompt] = useState<string>('');
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
 
-  const handleFileUpload = (file: File) => {
+  const handleFileUpload = (file: File, cloudinaryUrl?: string) => {
     setUploadedFile(file);
     const imageUrl = URL.createObjectURL(file);
     setUploadedImageUrl(imageUrl);
+    
+    if (cloudinaryUrl) {
+      setCloudinaryImageUrl(cloudinaryUrl);
+      console.log('Cloudinary image URL set:', cloudinaryUrl);
+    }
   };
 
   const handleAnalysisStart = () => {
     setAppState('analyzing');
   };
 
-  const handleAnalysisComplete = () => {
-    setAppState('results');
+  const handleAnalysisComplete = (result?: AnalysisResult) => {
+    if (result) {
+      setAnalysisResult(result);
+    }
+    setAppState('style-selection');
+  };
+
+  const handleStyleSelected = (style: string, prompt?: string) => {
+    setSelectedStyle(style);
+    setCustomPrompt(prompt || '');
+    setAppState('analyzing'); // 重新分析以根据选择的风格生成设计
+    // 模拟基于风格的设计生成过程
+    setTimeout(() => {
+      setAppState('results');
+    }, 3000);
+  };
+
+  const handleBackToStyleSelection = () => {
+    setAppState('style-selection');
   };
 
   const handleStartNew = () => {
@@ -42,6 +81,10 @@ export default function Home() {
       URL.revokeObjectURL(uploadedImageUrl);
     }
     setUploadedImageUrl('');
+    setCloudinaryImageUrl('');
+    setSelectedStyle('');
+    setCustomPrompt('');
+    setAnalysisResult(null);
   };
 
   const handleGetStarted = () => {
@@ -128,7 +171,45 @@ export default function Home() {
           <div className="max-w-2xl mx-auto">
             <AILoadingAnimation
               onComplete={handleAnalysisComplete}
+              uploadedImage={cloudinaryImageUrl || uploadedImageUrl}
+              uploadedFile={uploadedFile || undefined}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (appState === 'style-selection') {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
+        <header className="px-4 sm:px-6 lg:px-8 h-16 flex items-center border-b border-green-100 sticky top-0 bg-white/90 backdrop-blur-sm z-50">
+          <div className="flex items-center justify-between w-full max-w-7xl mx-auto">
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2">
+                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center transition-transform hover:scale-110 shadow-lg">
+                  <div className="grid grid-cols-2 gap-0.5">
+                    <div className="w-1.5 h-1.5 bg-white rounded-sm"></div>
+                    <div className="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>
+                    <div className="w-1.5 h-1.5 bg-white rounded-sm"></div>
+                    <div className="w-1.5 h-1.5 bg-white rounded-sm"></div>
+                  </div>
+                </div>
+                <span className="text-xl font-heading font-bold bg-gradient-to-r from-green-700 to-blue-600 bg-clip-text text-transparent">
+                  AI Landscape Design
+                </span>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div className="px-4 sm:px-6 lg:px-8 py-16">
+          <div className="max-w-7xl mx-auto">
+            <StyleSelection
               uploadedImage={uploadedImageUrl}
+              analysisResult={analysisResult || undefined}
+              onStyleSelected={handleStyleSelected}
+              onBack={handleStartNew}
             />
           </div>
         </div>

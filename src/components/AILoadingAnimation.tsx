@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { createImageAnalysisService, analyzeImage } from "@/lib/api";
 import {
   Scan,
   Brain,
@@ -16,9 +17,22 @@ import {
   CheckCircle
 } from "lucide-react";
 
+interface AnalysisResult {
+  spaceType: string;
+  size: string;
+  existingFeatures: string[];
+  lighting: string;
+  soilType: string;
+  climate: string;
+  challenges: string[];
+  opportunities: string[];
+  recommendations: string[];
+}
+
 interface AILoadingAnimationProps {
-  onComplete: () => void;
-  uploadedImage?: string;
+  imageUrl: string;
+  onAnalysisComplete: (result: any) => void;
+  onError: (error: Error) => void;
 }
 
 interface AnalysisStep {
@@ -74,47 +88,65 @@ const analysisSteps: AnalysisStep[] = [
   }
 ];
 
-export default function AILoadingAnimation({ onComplete, uploadedImage }: AILoadingAnimationProps) {
-  const [currentStep, setCurrentStep] = useState(0);
+export default function AILoadingAnimation({
+  imageUrl,
+  onAnalysisComplete,
+  onError
+}: AILoadingAnimationProps) {
   const [progress, setProgress] = useState(0);
+  const [status, setStatus] = useState('正在分析图片...');
+  const [currentStep, setCurrentStep] = useState(0);
   const [stepProgress, setStepProgress] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
 
   useEffect(() => {
-    if (currentStep >= analysisSteps.length) {
-      setTimeout(() => {
-        onComplete();
-      }, 1000);
-      return;
-    }
+    let mounted = true;
+    const startTime = Date.now();
+    const minDuration = 3000; // 最短动画时间
+    const maxDuration = 10000; // 最长等待时间
 
-    const step = analysisSteps[currentStep];
-    const stepDuration = step.duration;
-    const interval = 50; // Update every 50ms for smooth animation
-    const totalSteps = 100;
-    const progressIncrement = 100 / (stepDuration / interval);
-
-    let currentProgress = 0;
-    const progressInterval = setInterval(() => {
-      currentProgress += progressIncrement;
-      setStepProgress(Math.min(currentProgress, 100));
-
-      // Update overall progress
-      const overallProgress = ((currentStep * 100) + currentProgress) / analysisSteps.length;
-      setProgress(Math.min(overallProgress, 100));
-
-      if (currentProgress >= 100) {
-        clearInterval(progressInterval);
-        setCompletedSteps(prev => [...prev, step.id]);
-        setTimeout(() => {
-          setCurrentStep(prev => prev + 1);
-          setStepProgress(0);
-        }, 500);
+    // 进度条动画
+    const animateProgress = () => {
+      const elapsed = Date.now() - startTime;
+      const newProgress = Math.min((elapsed / minDuration) * 100, 95);
+      
+      if (mounted && elapsed < maxDuration) {
+        setProgress(newProgress);
+        requestAnimationFrame(animateProgress);
       }
-    }, interval);
+    };
 
-    return () => clearInterval(progressInterval);
-  }, [currentStep, onComplete]);
+    // 开始分析
+    const analyze = async () => {
+      try {
+        const result = await analyzeImage(imageUrl);
+        
+        if (mounted) {
+          // 确保至少显示最短动画时间
+          const elapsed = Date.now() - startTime;
+          if (elapsed < minDuration) {
+            await new Promise(resolve => setTimeout(resolve, minDuration - elapsed));
+          }
+          
+          setProgress(100);
+          setStatus('分析完成！');
+          onAnalysisComplete(result);
+        }
+      } catch (error) {
+        if (mounted) {
+          setStatus('分析失败');
+          onError(error as Error);
+        }
+      }
+    };
+
+    animateProgress();
+    analyze();
+
+    return () => {
+      mounted = false;
+    };
+  }, [imageUrl, onAnalysisComplete, onError]);
 
   return (
     <div className="space-y-6">
@@ -132,18 +164,18 @@ export default function AILoadingAnimation({ onComplete, uploadedImage }: AILoad
       </div>
 
       {/* Uploaded Image Preview */}
-      {uploadedImage && (
+      {imageUrl && (
         <Card className="overflow-hidden">
           <CardContent className="p-0">
             <div className="relative">
               <img
-                src={uploadedImage}
+                src={imageUrl}
                 alt="Your uploaded space"
                 className="w-full h-48 object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex items-end">
                 <div className="p-4 text-white">
-                  <p className="font-body text-sm">Analyzing this beautiful space...</p>
+                  <p className="font-body text-sm">{status}</p>
                 </div>
               </div>
             </div>
