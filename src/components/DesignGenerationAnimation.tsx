@@ -14,26 +14,31 @@ import {
   Loader2
 } from "lucide-react";
 
+interface AnalysisResult {
+  spaceType: string;
+  size: string;
+  existingFeatures: string[];
+  lighting: string;
+  soilType: string;
+  climate: string;
+  challenges: string[];
+  opportunities: string[];
+  recommendations: string[];
+}
+
 interface GeneratedDesign {
   imageUrl: string;
 }
 
 interface DesignGenerationAnimationProps {
-  imageUrl: string;
+  analysisResult: AnalysisResult;
+  originalImageUrl: string;
   style: string;
-  customDescription?: string;
   onGenerationComplete: (result: GeneratedDesign) => void;
   onError: (error: Error) => void;
 }
 
 const generationSteps = [
-  {
-    id: 'analyze',
-    title: '分析原始空间',
-    description: '正在分析空间结构和特点...',
-    icon: Sparkles,
-    duration: 2000,
-  },
   {
     id: 'style',
     title: '应用设计风格',
@@ -65,9 +70,9 @@ const generationSteps = [
 ];
 
 export default function DesignGenerationAnimation({
-  imageUrl,
+  analysisResult,
+  originalImageUrl,
   style,
-  customDescription,
   onGenerationComplete,
   onError
 }: DesignGenerationAnimationProps) {
@@ -97,7 +102,7 @@ export default function DesignGenerationAnimation({
     // 开始生成
     const generate = async () => {
       try {
-        const result = await generateDesign(imageUrl, style, customDescription);
+        const result = await generateDesign(analysisResult, style);
         
         if (mounted) {
           // 确保至少显示最短动画时间
@@ -124,7 +129,7 @@ export default function DesignGenerationAnimation({
     return () => {
       mounted = false;
     };
-  }, [imageUrl, style, customDescription, onGenerationComplete, onError]);
+  }, [analysisResult, style, onGenerationComplete, onError]);
 
   return (
     <div className="w-full max-w-xl mx-auto p-4">
@@ -143,7 +148,7 @@ export default function DesignGenerationAnimation({
         <CardContent className="p-0">
           <div className="relative">
             <img
-              src={imageUrl}
+              src={originalImageUrl}
               alt="原始空间"
               className="w-full h-48 object-cover"
             />

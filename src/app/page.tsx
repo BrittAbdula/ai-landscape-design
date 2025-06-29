@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -25,8 +25,9 @@ import BeforeAfterSlider from "@/components/BeforeAfterSlider";
 import AILoadingAnimation from "@/components/AILoadingAnimation";
 import AIResults from "@/components/AIResults";
 import StyleSelection from "@/components/StyleSelection";
+import DesignGenerationAnimation from "@/components/DesignGenerationAnimation";
 
-type AppState = 'home' | 'uploading' | 'analyzing' | 'style-selection' | 'results';
+type AppState = 'home' | 'uploading' | 'analyzing' | 'style-selection' | 'results' | 'generating';
 
 export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -37,6 +38,15 @@ export default function Home() {
   const [selectedStyle, setSelectedStyle] = useState<string>('');
   const [customPrompt, setCustomPrompt] = useState<string>('');
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+  const [generatedImageUrl, setGeneratedImageUrl] = useState<string>('');
+  
+  const designStudioRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (appState === 'uploading' || appState === 'results') {
+      designStudioRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [appState]);
 
   const handleFileUpload = (file: File, cloudinaryUrl?: string) => {
     setUploadedFile(file);
@@ -53,21 +63,15 @@ export default function Home() {
     setAppState('analyzing');
   };
 
-  const handleAnalysisComplete = (result?: AnalysisResult) => {
-    if (result) {
-      setAnalysisResult(result);
-    }
+  const handleAnalysisComplete = (result: AnalysisResult) => {
+    setAnalysisResult(result);
     setAppState('style-selection');
   };
 
   const handleStyleSelected = (style: string, prompt?: string) => {
     setSelectedStyle(style);
     setCustomPrompt(prompt || '');
-    setAppState('analyzing'); // 重新分析以根据选择的风格生成设计
-    // 模拟基于风格的设计生成过程
-    setTimeout(() => {
-      setAppState('results');
-    }, 3000);
+    setAppState('generating');
   };
 
   const handleBackToStyleSelection = () => {
@@ -85,178 +89,113 @@ export default function Home() {
     setSelectedStyle('');
     setCustomPrompt('');
     setAnalysisResult(null);
+    setGeneratedImageUrl('');
   };
 
   const handleGetStarted = () => {
     setAppState('uploading');
   };
 
-  // Render different states
-  if (appState === 'uploading') {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
-        {/* Header */}
-        <header className="px-4 sm:px-6 lg:px-8 h-16 flex items-center border-b border-green-100 sticky top-0 bg-white/90 backdrop-blur-sm z-50">
-          <div className="flex items-center justify-between w-full max-w-7xl mx-auto">
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center space-x-2">
-                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center transition-transform hover:scale-110 shadow-lg">
-                  <div className="grid grid-cols-2 gap-0.5">
-                    <div className="w-1.5 h-1.5 bg-white rounded-sm"></div>
-                    <div className="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>
-                    <div className="w-1.5 h-1.5 bg-white rounded-sm"></div>
-                    <div className="w-1.5 h-1.5 bg-white rounded-sm"></div>
-                  </div>
-                </div>
-                <span className="text-xl font-heading font-bold bg-gradient-to-r from-green-700 to-blue-600 bg-clip-text text-transparent">
-                  AI Landscape Design
-                </span>
-              </div>
-            </div>
+  const InteractiveDesigner = () => {
+    if (appState === 'home') {
+      return <BeforeAfterSlider showDemo={true} />;
+    }
+
+    if (appState === 'uploading') {
+      return (
+        <div className="max-w-2xl mx-auto">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl sm:text-4xl font-heading font-bold text-gray-900 mb-4">
+              Upload Your Yard Photo
+            </h1>
+            <p className="text-lg font-body text-gray-600">
+              Share a photo of your outdoor space and let our AI create stunning landscape designs for you.
+            </p>
+          </div>
+
+          <FileUpload
+            onFileUpload={handleFileUpload}
+            onAnalysisStart={handleAnalysisStart}
+          />
+        </div>
+      );
+    }
+  
+    if (appState === 'analyzing') {
+      return (
+        <div className="max-w-2xl mx-auto">
+          <AILoadingAnimation
+            imageUrl={cloudinaryImageUrl || uploadedImageUrl}
+            onAnalysisComplete={(result) => {
+              setAnalysisResult(result);
+              setAppState('style-selection');
+            }}
+            onError={(error) => {
+              console.error('Analysis error:', error);
+              // 可以在这里添加错误处理UI
+              setAppState('style-selection');
+            }}
+          />
+        </div>
+      );
+    }
+  
+    if (appState === 'style-selection') {
+      return (
+        <div className="max-w-7xl mx-auto">
+          <StyleSelection
+            uploadedImage={uploadedImageUrl}
+            analysisResult={analysisResult || undefined}
+            onStyleSelected={handleStyleSelected}
+            onBack={handleStartNew}
+          />
+        </div>
+      );
+    }
+  
+    if (appState === 'generating') {
+      return (
+        <div className="max-w-7xl mx-auto">
+          <div className="text-right mb-4">
             <Button
               variant="ghost"
-              onClick={handleStartNew}
+              onClick={handleBackToStyleSelection}
               className="text-gray-600 hover:text-green-600"
             >
-              ← Back to Home
+              ← Back to Style Selection
             </Button>
           </div>
-        </header>
-
-        <div className="px-4 sm:px-6 lg:px-8 py-16">
-          <div className="max-w-2xl mx-auto">
-            <div className="text-center mb-8">
-              <h1 className="text-3xl sm:text-4xl font-heading font-bold text-gray-900 mb-4">
-                Upload Your Yard Photo
-              </h1>
-              <p className="text-lg font-body text-gray-600">
-                Share a photo of your outdoor space and let our AI create stunning landscape designs for you.
-              </p>
-            </div>
-
-            <FileUpload
-              onFileUpload={handleFileUpload}
-              onAnalysisStart={handleAnalysisStart}
-            />
-          </div>
+          <DesignGenerationAnimation
+            analysisResult={analysisResult!}
+            originalImageUrl={uploadedImageUrl}
+            style={selectedStyle}
+            onGenerationComplete={(result) => {
+              setGeneratedImageUrl(result.imageUrl);
+              setAppState('results');
+            }}
+            onError={(error) => {
+              console.error('Generation error:', error);
+              // TODO: Show error message to user
+              setAppState('style-selection');
+            }}
+          />
         </div>
-      </div>
-    );
-  }
-
-  if (appState === 'analyzing') {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
-        <header className="px-4 sm:px-6 lg:px-8 h-16 flex items-center border-b border-green-100 sticky top-0 bg-white/90 backdrop-blur-sm z-50">
-          <div className="flex items-center justify-between w-full max-w-7xl mx-auto">
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center space-x-2">
-                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center transition-transform hover:scale-110 shadow-lg">
-                  <div className="grid grid-cols-2 gap-0.5">
-                    <div className="w-1.5 h-1.5 bg-white rounded-sm"></div>
-                    <div className="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>
-                    <div className="w-1.5 h-1.5 bg-white rounded-sm"></div>
-                    <div className="w-1.5 h-1.5 bg-white rounded-sm"></div>
-                  </div>
-                </div>
-                <span className="text-xl font-heading font-bold bg-gradient-to-r from-green-700 to-blue-600 bg-clip-text text-transparent">
-                  AI Landscape Design
-                </span>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        <div className="px-4 sm:px-6 lg:px-8 py-16">
-          <div className="max-w-2xl mx-auto">
-            <AILoadingAnimation
-              onComplete={handleAnalysisComplete}
-              uploadedImage={cloudinaryImageUrl || uploadedImageUrl}
-              uploadedFile={uploadedFile || undefined}
-            />
-          </div>
+      );
+    }
+  
+    if (appState === 'results') {
+      return (
+        <div className="max-w-7xl mx-auto">
+          <AIResults
+            uploadedImage={uploadedImageUrl}
+            generatedImage={generatedImageUrl}
+            onStartNew={() => setAppState('uploading')}
+          />
         </div>
-      </div>
-    );
-  }
+      );
+    }
 
-  if (appState === 'style-selection') {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
-        <header className="px-4 sm:px-6 lg:px-8 h-16 flex items-center border-b border-green-100 sticky top-0 bg-white/90 backdrop-blur-sm z-50">
-          <div className="flex items-center justify-between w-full max-w-7xl mx-auto">
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center space-x-2">
-                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center transition-transform hover:scale-110 shadow-lg">
-                  <div className="grid grid-cols-2 gap-0.5">
-                    <div className="w-1.5 h-1.5 bg-white rounded-sm"></div>
-                    <div className="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>
-                    <div className="w-1.5 h-1.5 bg-white rounded-sm"></div>
-                    <div className="w-1.5 h-1.5 bg-white rounded-sm"></div>
-                  </div>
-                </div>
-                <span className="text-xl font-heading font-bold bg-gradient-to-r from-green-700 to-blue-600 bg-clip-text text-transparent">
-                  AI Landscape Design
-                </span>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        <div className="px-4 sm:px-6 lg:px-8 py-16">
-          <div className="max-w-7xl mx-auto">
-            <StyleSelection
-              uploadedImage={uploadedImageUrl}
-              analysisResult={analysisResult || undefined}
-              onStyleSelected={handleStyleSelected}
-              onBack={handleStartNew}
-            />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (appState === 'results') {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
-        <header className="px-4 sm:px-6 lg:px-8 h-16 flex items-center border-b border-green-100 sticky top-0 bg-white/90 backdrop-blur-sm z-50">
-          <div className="flex items-center justify-between w-full max-w-7xl mx-auto">
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center space-x-2">
-                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center transition-transform hover:scale-110 shadow-lg">
-                  <div className="grid grid-cols-2 gap-0.5">
-                    <div className="w-1.5 h-1.5 bg-white rounded-sm"></div>
-                    <div className="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>
-                    <div className="w-1.5 h-1.5 bg-white rounded-sm"></div>
-                    <div className="w-1.5 h-1.5 bg-white rounded-sm"></div>
-                  </div>
-                </div>
-                <span className="text-xl font-heading font-bold bg-gradient-to-r from-green-700 to-blue-600 bg-clip-text text-transparent">
-                  AI Landscape Design
-                </span>
-              </div>
-            </div>
-            <Button
-              variant="outline"
-              onClick={handleStartNew}
-              className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
-            >
-              Start New Design
-            </Button>
-          </div>
-        </header>
-
-        <div className="px-4 sm:px-6 lg:px-8 py-16">
-          <div className="max-w-7xl mx-auto">
-            <AIResults
-              uploadedImage={uploadedImageUrl}
-              onStartNew={handleStartNew}
-            />
-          </div>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   // Default home state
@@ -339,8 +278,8 @@ export default function Home() {
           </div>
 
           {/* Interactive Before/After Demo */}
-          <div className="mt-12 sm:mt-16">
-            <BeforeAfterSlider showDemo={true} />
+          <div id="design-studio" ref={designStudioRef} className="mt-12 sm:mt-16 scroll-mt-20">
+            <InteractiveDesigner />
           </div>
         </div>
       </section>

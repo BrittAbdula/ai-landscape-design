@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { createImageAnalysisService, analyzeImage } from "@/lib/api";
+import { analyzeImage } from "@/lib/api";
 import {
   Scan,
   Brain,
@@ -31,7 +31,7 @@ interface AnalysisResult {
 
 interface AILoadingAnimationProps {
   imageUrl: string;
-  onAnalysisComplete: (result: any) => void;
+  onAnalysisComplete: (result: AnalysisResult) => void;
   onError: (error: Error) => void;
 }
 
@@ -102,10 +102,10 @@ export default function AILoadingAnimation({
   useEffect(() => {
     let mounted = true;
     const startTime = Date.now();
-    const minDuration = 3000; // 最短动画时间
-    const maxDuration = 10000; // 最长等待时间
+    const minDuration = 3000; // Minimum animation duration
+    const maxDuration = 10000; // Maximum wait time
 
-    // 进度条动画
+    // Progress bar animation
     const animateProgress = () => {
       const elapsed = Date.now() - startTime;
       const newProgress = Math.min((elapsed / minDuration) * 100, 95);
@@ -116,25 +116,32 @@ export default function AILoadingAnimation({
       }
     };
 
-    // 开始分析
+    // Start analysis
     const analyze = async () => {
       try {
+        console.log('Starting analysis with image URL:', imageUrl);
+        if (!imageUrl) {
+          throw new Error('No image URL provided');
+        }
+
         const result = await analyzeImage(imageUrl);
+        console.log('Analysis result:', result);
         
         if (mounted) {
-          // 确保至少显示最短动画时间
+          // Ensure minimum animation duration
           const elapsed = Date.now() - startTime;
           if (elapsed < minDuration) {
             await new Promise(resolve => setTimeout(resolve, minDuration - elapsed));
           }
           
           setProgress(100);
-          setStatus('分析完成！');
+          setStatus('Analysis complete!');
           onAnalysisComplete(result);
         }
       } catch (error) {
+        console.error('Analysis error:', error);
         if (mounted) {
-          setStatus('分析失败');
+          setStatus('Analysis failed');
           onError(error as Error);
         }
       }

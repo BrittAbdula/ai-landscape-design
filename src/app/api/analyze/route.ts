@@ -16,6 +16,56 @@ interface AnalysisResult {
   recommendations: string[];
 }
 
+interface Annotation {
+  type: string;
+  text?: string;
+  [key: string]: string | number | boolean | null | undefined;
+}
+
+interface Message {
+  content: string;
+  role: string;
+  refusal?: string;
+  annotations?: Annotation[];
+  [property: string]: string | number | boolean | null | undefined | Annotation[];
+}
+
+interface Choice {
+  finish_reason?: string;
+  index?: number;
+  message?: Message;
+  logprobs?: null;
+  [property: string]: string | number | boolean | null | undefined | Message;
+}
+
+interface TokenDetails {
+  cached_tokens?: number;
+  audio_tokens?: number;
+  reasoning_tokens?: number;
+  accepted_prediction_tokens?: number;
+  rejected_prediction_tokens?: number;
+}
+
+interface Usage {
+  completion_tokens: number;
+  prompt_tokens: number;
+  total_tokens: number;
+  prompt_tokens_details?: TokenDetails;
+  completion_tokens_details?: TokenDetails;
+  [property: string]: string | number | boolean | null | undefined | TokenDetails;
+}
+
+interface OpenAIResponse {
+  choices: Choice[];
+  created: number;
+  id: string;
+  object: string;
+  usage: Usage;
+  model?: string;
+  system_fingerprint?: string;
+  [property: string]: string | number | boolean | null | undefined | Choice[] | Usage;
+}
+
 export async function POST(request: Request) {
   try {
     const { imageUrl } = await request.json() as AnalysisRequest;
@@ -27,7 +77,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // 检查API密钥
+    // Check API key
     const apiKey = process.env.OPENAI_API_KEY;
     const apiBaseUrl = process.env.API_BASE_URL || 'https://api.openai.com';
 
@@ -38,29 +88,33 @@ export async function POST(request: Request) {
       );
     }
 
-    // 构建分析提示词
-    const analysisPrompt = `请分析这张庭院/景观图片，并以JSON格式返回分析结果。请按照以下格式回答：
+    // Build analysis prompt
+    const analysisPrompt = `Please analyze this yard/landscape image and return the analysis in JSON format. Use the following format:
 
 {
-  "spaceType": "空间类型（如：前院、后院、阳台、庭院等）",
-  "size": "空间大小估算",
-  "existingFeatures": ["现有的景观元素"],
-  "lighting": "光照条件描述",
-  "soilType": "土壤类型推测",
-  "climate": "气候条件推测",
-  "challenges": ["设计挑战点"],
-  "opportunities": ["设计机会点"],
-  "recommendations": ["初步建议"]
+  "spaceType": "Space type (e.g., front yard, backyard, patio, garden)",
+  "size": "Estimated space size",
+  "existingFeatures": ["List of existing landscape elements"],
+  "lighting": "Lighting conditions description",
+  "soilType": "Soil type estimation",
+  "climate": "Climate conditions estimation",
+  "challenges": ["Design challenges"],
+  "opportunities": ["Design opportunities"],
+  "recommendations": ["Initial suggestions"]
 }
 
-请详细分析图片中的：
-1. 空间结构和布局
-2. 现有植物和硬质景观
-3. 光照和环境条件
-4. 设计的潜力和限制
-5. 改进建议`;
+Please analyze in detail:
+1. Space structure and layout
+2. Existing plants and hardscape
+3. Light and environmental conditions
+4. Design potential and limitations
+5. Improvement suggestions
 
-    // 调用OpenAI API
+IMPORTANT: Return ONLY the JSON object, no additional text.`;
+
+    console.log('Calling OpenAI API with image URL:', imageUrl);
+
+    // Call OpenAI API
     const response = await fetch(`${apiBaseUrl}/v1/chat/completions`, {
       method: 'POST',
       headers: {
@@ -68,7 +122,7 @@ export async function POST(request: Request) {
         'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'gpt-4o-mini',
         messages: [
           {
             role: 'user',
@@ -93,48 +147,96 @@ export async function POST(request: Request) {
 
     if (!response.ok) {
       const error = await response.json();
-      console.error('API error:', error);
+      console.error('OpenAI API error:', error);
       return NextResponse.json(
-        { error: 'Analysis failed' },
+        { 
+          error: 'Analysis failed',
+          details: error.error?.message || 'Unknown error',
+          code: error.error?.code || response.status
+        },
         { status: response.status }
       );
     }
 
-    const data = await response.json();
+    const data = await response.json() as OpenAIResponse;
+    console.log('OpenAI API response:', JSON.stringify(data, null, 2));
     
-    if (!data.choices || data.choices.length === 0) {
+    const firstChoice = data.choices?.[0];
+    if (!firstChoice?.message) {
+      console.error('Invalid API response structure:', JSON.stringify(data, null, 2));
       return NextResponse.json(
-        { error: 'Invalid API response' },
+        { 
+          error: 'Invalid API response',
+          details: 'Response does not contain expected content',
+          response: data
+        },
         { status: 500 }
       );
     }
 
-    const content = data.choices[0].message.content;
+    // Check for refusal message
+    if (firstChoice.message.refusal) {
+      console.log('Image analysis refused:', firstChoice.message.refusal);
+      return NextResponse.json(
+        {
+          error: 'Analysis refused',
+          details: firstChoice.message.refusal,
+          response: data
+        },
+        { status: 422 }
+      );
+    }
+
+    const content = firstChoice.message.content.trim();
+    if (!content) {
+      console.error('Empty content in API response:', JSON.stringify(data, null, 2));
+      return NextResponse.json(
+        {
+          error: 'Empty analysis result',
+          details: 'The API returned an empty content',
+          response: data
+        },
+        { status: 422 }
+      );
+    }
+
+    console.log('API response content:', content);
     
     try {
-      // 尝试解析JSON响应
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        const analysisResult = JSON.parse(jsonMatch[0]) as AnalysisResult;
+      // Try to parse the content as JSON
+      try {
+        const analysisResult = JSON.parse(content) as AnalysisResult;
+        console.log('Successfully parsed analysis result:', JSON.stringify(analysisResult, null, 2));
         return NextResponse.json(analysisResult);
+      } catch (parseError) {
+        // If direct parsing fails, try to extract JSON
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const analysisResult = JSON.parse(jsonMatch[0]) as AnalysisResult;
+          console.log('Successfully parsed extracted JSON:', JSON.stringify(analysisResult, null, 2));
+          return NextResponse.json(analysisResult);
+        }
+        throw parseError; // Re-throw if no JSON found
       }
-      
-      // 如果没有找到JSON格式，返回错误
-      return NextResponse.json(
-        { error: 'Failed to parse analysis result' },
-        { status: 500 }
-      );
     } catch (parseError) {
-      console.error('Parse error:', parseError);
+      console.error('JSON parse error:', parseError);
+      console.error('Failed content:', content);
       return NextResponse.json(
-        { error: 'Failed to parse analysis result' },
+        { 
+          error: 'Failed to parse analysis result',
+          details: parseError instanceof Error ? parseError.message : 'Unknown parse error',
+          content: content // Include the raw content for debugging
+        },
         { status: 500 }
       );
     }
   } catch (error) {
     console.error('Analysis error:', error);
     return NextResponse.json(
-      { error: 'Analysis failed' },
+      { 
+        error: 'Analysis failed',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }

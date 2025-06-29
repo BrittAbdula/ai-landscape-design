@@ -33,24 +33,27 @@ export default function FileUpload({ onFileUpload, onAnalysisStart }: FileUpload
     reader.readAsDataURL(file);
 
     try {
-      // 上传到Cloudinary
-      const cloudinaryImageUrl = await uploadImageToCloudinary(file);
-      setCloudinaryUrl(cloudinaryImageUrl);
-      console.log('Image uploaded to Cloudinary:', cloudinaryImageUrl);
+      // Upload to Cloudinary
+      const uploadResult = await uploadImageToCloudinary(file);
+      setCloudinaryUrl(uploadResult.url);
+      console.log('Image uploaded to Cloudinary:', uploadResult.url);
       
-      // 通知父组件
-      onFileUpload(file, cloudinaryImageUrl);
+      // Call the parent component's onFileUpload with the file and Cloudinary URL
+      onFileUpload(file, uploadResult.url);
+
+      // Automatically start analysis after successful upload
+      onAnalysisStart();
       
     } catch (error) {
       console.error('Failed to upload to Cloudinary:', error);
-      setUploadError(error instanceof Error ? error.message : '图片上传失败');
+      setUploadError(error instanceof Error ? error.message : 'Upload failed');
       
-      // 即使Cloudinary上传失败，仍然通知父组件（使用本地文件）
+      // Even if Cloudinary upload fails, still notify parent component (using local file)
       onFileUpload(file);
     } finally {
       setIsUploading(false);
     }
-  }, [onFileUpload]);
+  }, [onFileUpload, onAnalysisStart]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -148,80 +151,62 @@ export default function FileUpload({ onFileUpload, onAnalysisStart }: FileUpload
           <CardContent className="p-0">
             <div className="relative">
               {imagePreview && (
-                <img
-                  src={imagePreview}
-                  alt="Uploaded yard"
-                  className="w-full h-64 object-cover"
-                />
-              )}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white"
-                onClick={handleRemoveFile}
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-            <div className="p-6">
-              <h3 className="font-heading font-semibold text-lg mb-2">
-                {isUploading ? 'Uploading...' : 'Perfect! Your photo is ready'}
-              </h3>
-              <p className="text-gray-600 font-body mb-2">
-                File: {uploadedFile.name} ({Math.round(uploadedFile.size / 1024)} KB)
-              </p>
-              
-              {/* Upload status */}
-              {isUploading && (
-                <div className="flex items-center text-blue-600 mb-3">
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  <span className="text-sm">正在上传到云端...</span>
+                <div className="relative">
+                  <img
+                    src={imagePreview}
+                    alt="Uploaded yard"
+                    className="w-full h-64 object-cover"
+                  />
+                  {isUploading && (
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                      <div className="flex items-center text-white">
+                        <Loader2 className="w-6 h-6 mr-2 animate-spin" />
+                        <span>Uploading to cloud...</span>
+                      </div>
+                    </div>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white"
+                    onClick={handleRemoveFile}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
                 </div>
               )}
+              <div className="p-6">
+                <h3 className="font-heading font-semibold text-lg mb-2">
+                  {isUploading ? 'Uploading...' : 'Perfect! Your photo is ready'}
+                </h3>
+                <p className="text-gray-600 font-body mb-2">
+                  File: {uploadedFile.name} ({Math.round(uploadedFile.size / 1024)} KB)
+                </p>
               
-              {cloudinaryUrl && !isUploading && (
-                <div className="flex items-center text-green-600 mb-3">
-                  <div className="w-2 h-2 bg-green-600 rounded-full mr-2"></div>
-                  <span className="text-sm">已成功上传到云端</span>
-                </div>
-              )}
+                {cloudinaryUrl && !isUploading && (
+                  <div className="flex items-center text-green-600 mb-3">
+                    <div className="w-2 h-2 bg-green-600 rounded-full mr-2"></div>
+                    <span className="text-sm">Successfully uploaded to cloud</span>
+                  </div>
+                )}
               
-              {uploadError && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-3">
-                  <p className="text-red-600 text-sm">
-                    <strong>上传失败:</strong> {uploadError}
-                  </p>
-                  <p className="text-red-500 text-xs mt-1">
-                    将使用本地文件进行分析
-                  </p>
-                </div>
-              )}
+                {uploadError && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-3">
+                    <p className="text-red-600 text-sm">
+                      <strong>Upload failed:</strong> {uploadError}
+                    </p>
+                    <p className="text-red-500 text-xs mt-1">
+                      Will proceed with local file
+                    </p>
+                  </div>
+                )}
               
-              <div className="flex gap-3">
                 <Button
+                  className="w-full"
                   onClick={handleStartAnalysis}
                   disabled={isUploading}
-                  className="bg-green-600 hover:bg-green-700 text-white hover-lift flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isUploading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Uploading...
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="w-4 h-4 mr-2" />
-                      Start AI Analysis
-                    </>
-                  )}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleRemoveFile}
-                  disabled={isUploading}
-                  className="border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Remove
+                  Start Analysis
                 </Button>
               </div>
             </div>

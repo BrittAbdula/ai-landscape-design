@@ -157,7 +157,7 @@ export default function BeforeAfterSlider({
 
         <div className="p-4 sm:p-6 text-center">
           <Badge className="bg-green-100 text-green-800 border-green-200 font-body">
-            {beforeImage && afterImage ? 'Drag to Compare Your Results' : 'Interactive Demo - Drag to Compare'}
+            {beforeImage && afterImage ? 'Drag to Compare Your Landscape Design' : 'Interactive Demo - Drag to Compare'}
           </Badge>
         </div>
       </div>

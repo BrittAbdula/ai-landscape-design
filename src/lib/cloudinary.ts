@@ -1,27 +1,28 @@
 interface CloudinaryUploadResponse {
   id: string;
   url: string;
-  width?: number;
-  height?: number;
-  format?: string;
+  format: string;
+  width: number;
+  height: number;
+  size: number;
+  originalName: string;
 }
 
-interface ApiResponse<T> {
-  success: boolean;
-  result?: T;
-  errors?: Array<{
-    message: string;
-    code: number;
-  }>;
+interface UploadOptions {
+  userId?: string | null;
 }
 
-// Upload image and return public URL
-export async function uploadImageToCloudinary(file: File, userId?: string): Promise<string> {
+// Upload an image and return the public URL
+export async function uploadImageToCloudinary(
+  file: File, 
+  options: UploadOptions = {}
+): Promise<CloudinaryUploadResponse> {
   try {
     const formData = new FormData();
     formData.append('file', file);
-    if (userId) {
-      formData.append('userId', userId);
+    
+    if (options.userId) {
+      formData.append('userId', options.userId);
     }
 
     const response = await fetch('/api/upload', {
@@ -29,14 +30,13 @@ export async function uploadImageToCloudinary(file: File, userId?: string): Prom
       body: formData,
     });
 
-    const data: ApiResponse<CloudinaryUploadResponse> = await response.json();
-
-    if (!data.success || !data.result) {
-      const errorMessage = data.errors?.[0]?.message || 'Upload failed';
-      throw new Error(errorMessage);
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(`Upload failed: ${error.message || error.details || response.statusText}`);
     }
 
-    return data.result.url;
+    const data: CloudinaryUploadResponse = await response.json();
+    return data;
   } catch (error) {
     console.error('Upload error:', error);
     throw error;

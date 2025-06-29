@@ -14,7 +14,17 @@ interface GeneratedDesign {
   imageUrl: string;
 }
 
-// 上传图片到Cloudinary
+interface UploadResponse {
+  id: string;
+  url: string;
+  format: string;
+  width: number;
+  height: number;
+  size: number;
+  originalName: string;
+}
+
+// Upload image to Cloudinary
 export async function uploadImage(file: File): Promise<string> {
   const formData = new FormData();
   formData.append('file', file);
@@ -25,14 +35,15 @@ export async function uploadImage(file: File): Promise<string> {
   });
 
   if (!response.ok) {
-    throw new Error('Upload failed');
+    const error = await response.json();
+    throw new Error(error.details || 'Upload failed');
   }
 
-  const data = await response.json();
-  return data.secure_url;
+  const data = await response.json() as UploadResponse;
+  return data.url;
 }
 
-// 分析图片
+// Analyze image
 export async function analyzeImage(imageUrl: string): Promise<AnalysisResult> {
   const response = await fetch('/api/analyze', {
     method: 'POST',
@@ -43,28 +54,29 @@ export async function analyzeImage(imageUrl: string): Promise<AnalysisResult> {
   });
 
   if (!response.ok) {
-    throw new Error('Analysis failed');
+    const error = await response.json();
+    throw new Error(error.details || 'Analysis failed');
   }
 
   return response.json();
 }
 
-// 生成设计
-export async function generateDesign(imageUrl: string, style: string, customDescription?: string): Promise<GeneratedDesign> {
+// Generate design
+export async function generateDesign(analysisResult: AnalysisResult, style: string): Promise<GeneratedDesign> {
   const response = await fetch('/api/generate', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      imageUrl,
+      analysisResult,
       style,
-      customDescription,
     }),
   });
 
   if (!response.ok) {
-    throw new Error('Generation failed');
+    const error = await response.json();
+    throw new Error(error.details || 'Generation failed');
   }
 
   return response.json();
