@@ -125,7 +125,7 @@ export default function Home() {
       return (
         <div className="max-w-2xl mx-auto">
           <AILoadingAnimation
-            imageUrl={cloudinaryImageUrl || uploadedImageUrl}
+            imageUrl={cloudinaryImageUrl}
             onAnalysisComplete={(result) => {
               setAnalysisResult(result);
               setAppState('style-selection');
@@ -144,7 +144,7 @@ export default function Home() {
       return (
         <div className="max-w-7xl mx-auto">
           <StyleSelection
-            uploadedImage={uploadedImageUrl}
+            uploadedImage={cloudinaryImageUrl}
             analysisResult={analysisResult || undefined}
             onStyleSelected={handleStyleSelected}
             onBack={handleStartNew}
@@ -167,8 +167,9 @@ export default function Home() {
           </div>
           <DesignGenerationAnimation
             analysisResult={analysisResult!}
-            originalImageUrl={uploadedImageUrl}
+            originalImageUrl={cloudinaryImageUrl}
             style={selectedStyle}
+            customPrompt={customPrompt}
             onGenerationComplete={(result) => {
               setGeneratedImageUrl(result.imageUrl);
               setAppState('results');
@@ -187,7 +188,7 @@ export default function Home() {
       return (
         <div className="max-w-7xl mx-auto">
           <AIResults
-            uploadedImage={uploadedImageUrl}
+            uploadedImage={cloudinaryImageUrl}
             generatedImage={generatedImageUrl}
             onStartNew={() => setAppState('uploading')}
           />
@@ -206,14 +207,7 @@ export default function Home() {
         <div className="flex items-center justify-between w-full max-w-7xl mx-auto">
           <div className="flex items-center space-x-3">
             <div className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center transition-transform hover:scale-110 shadow-lg">
-                <div className="grid grid-cols-2 gap-0.5">
-                  <div className="w-1.5 h-1.5 bg-white rounded-sm"></div>
-                  <div className="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>
-                  <div className="w-1.5 h-1.5 bg-white rounded-sm"></div>
-                  <div className="w-1.5 h-1.5 bg-white rounded-sm"></div>
-                </div>
-              </div>
+              <img src="/ailandscapedesignlogo.png" alt="AI Landscape Design Logo" className="w-10 h-10 object-contain mr-2" />
               <span className="text-xl font-heading font-bold bg-gradient-to-r from-green-700 to-blue-600 bg-clip-text text-transparent">
                 AI Landscape Design
               </span>
@@ -294,16 +288,16 @@ export default function Home() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {[
-              { title: "Modern Zen Garden", style: "Contemporary minimalism with water features", image: "🏡" },
-              { title: "Romantic Flower Paradise", style: "Cottage garden with stone pathways", image: "🌺" },
-              { title: "Family Entertainment Hub", style: "Outdoor living with fire pit and seating", image: "🔥" },
-              { title: "Urban Rooftop Oasis", style: "City sanctuary with vertical gardens", image: "🏢" },
-              { title: "Mediterranean Courtyard", style: "Tuscan-inspired with olive trees", image: "🫒" },
-              { title: "Japanese Inspired Retreat", style: "Tranquil space with bamboo and stones", image: "🎋" }
+              { title: "Modern Zen Garden", style: "Contemporary minimalism with water features", image: "https://imagedelivery.net/DEOVdDdfeGzASe0KdtD7FA/11d4ff66-c992-45b9-71f6-2804e6cb2c00/public" },
+              { title: "Romantic Flower Paradise", style: "Cottage garden with stone pathways", image: "https://imagedelivery.net/DEOVdDdfeGzASe0KdtD7FA/5de3c5b7-a5ed-4cee-d273-982933621100/public" },
+              { title: "Family Entertainment Hub", style: "Outdoor living with fire pit and seating", image: "https://imagedelivery.net/DEOVdDdfeGzASe0KdtD7FA/f612ae5e-63f1-49e1-2130-2765d44c8000/public" },
+              { title: "Urban Rooftop Oasis", style: "City sanctuary with vertical gardens", image: "https://imagedelivery.net/DEOVdDdfeGzASe0KdtD7FA/e8627f93-e611-4c19-4b8c-e89bcfe88700/public" },
+              { title: "Mediterranean Courtyard", style: "Tuscan-inspired with olive trees", image: "https://imagedelivery.net/DEOVdDdfeGzASe0KdtD7FA/ca9a12c2-5335-4473-18da-0a54018c5600/public" },
+              { title: "Japanese Inspired Retreat", style: "Tranquil space with bamboo and stones", image: "https://imagedelivery.net/DEOVdDdfeGzASe0KdtD7FA/4aaf3964-f8d5-49c7-5ae4-dba3f5108200/public" }
             ].map((design) => (
               <Card key={design.title} className="overflow-hidden hover:shadow-lg hover-lift transition-all duration-300 group">
-                <div className="aspect-square bg-gradient-to-br from-green-100 to-emerald-200 flex items-center justify-center text-4xl sm:text-6xl group-hover:scale-110 transition-transform duration-300">
-                  {design.image}
+                <div className="aspect-square bg-gradient-to-br from-green-100 to-emerald-200 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 overflow-hidden">
+                  <img src={design.image} alt={design.title + ' example'} className="object-cover w-full h-full" />
                 </div>
                 <CardHeader>
                   <CardTitle className="text-lg font-heading">{design.title}</CardTitle>
@@ -435,6 +429,46 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Case Studies: Real AI Landscape Design Transformations */}
+      <section id="case-studies" className="px-4 sm:px-6 lg:px-8 py-16 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-heading font-bold text-gray-900 mb-4">
+              Real AI Landscape Design Transformations
+            </h2>
+            <p className="text-lg sm:text-xl font-body text-gray-600">
+              Discover how our AI landscape generator and backyard AI planner help homeowners and professionals create stunning outdoor spaces. Explore these case studies to see how you can transform your outdoor space with AI.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Case Study 1 */}
+            <div className="bg-gray-50 p-6 rounded-lg shadow">
+              <h3 className="font-heading text-xl mb-2">Backyard Makeover with AI Garden Design</h3>
+              <p className="font-body text-gray-700 mb-2">
+                Location: California | Space: 80㎡ backyard
+              </p>
+              <p className="font-body text-gray-600 mb-4">
+                The homeowner wanted a low-maintenance, modern garden. Using our AI landscape design free tool, they uploaded a photo and received three unique design options. The AI suggested drought-tolerant plants and a smart irrigation layout, perfectly suited for the local climate. This smart landscaping tool made it easy to visualize the transformation and select the best AI landscape design for their needs.
+              </p>
+              <img src="https://imagedelivery.net/DEOVdDdfeGzASe0KdtD7FA/5030df96-2c83-45ee-5f93-24971b75fe00/public" alt="AI garden design before and after" className="rounded mb-2" />
+              <p className="font-body text-green-700">“The AI garden design was spot-on! I never imagined my backyard could look so good with so little effort.”</p>
+            </div>
+            {/* Case Study 2 */}
+            <div className="bg-gray-50 p-6 rounded-lg shadow">
+              <h3 className="font-heading text-xl mb-2">Transforming a Small Urban Space with AI Landscape Generator</h3>
+              <p className="font-body text-gray-700 mb-2">
+                Location: New York | Space: 30㎡ rooftop terrace
+              </p>
+              <p className="font-body text-gray-600 mb-4">
+                This client used our AI landscape design free online platform to reimagine their rooftop. The AI for landscape design analyzed sunlight, wind exposure, and user preferences, generating multiple design options. The final plan included vertical gardens, modular seating, and low-maintenance plants, all tailored by the landscape design AI for urban living.
+              </p>
+              <img src="https://imagedelivery.net/DEOVdDdfeGzASe0KdtD7FA/7712366b-76d5-43d3-098f-d57f182eb700/public" alt="AI landscape design free online transformation" className="rounded mb-2" />
+              <p className="font-body text-green-700">“The best AI landscape design tool I've tried—fast, creative, and easy to use!”</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Testimonials */}
       <section className="px-4 sm:px-6 lg:px-8 py-16">
         <div className="max-w-7xl mx-auto">
@@ -554,6 +588,100 @@ export default function Home() {
         </div>
       </section>
 
+      {/* FAQ */}
+      <section id="faq" className="bg-gray-50 py-12">
+        <div className="max-w-4xl mx-auto px-4">
+          <h2 className="text-3xl font-bold mb-6">Frequently Asked Questions</h2>
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-xl font-semibold">What is AI Landscape Design?</h3>
+              <p className="text-gray-700">
+                AI Landscape Design is a smart tool that lets you redesign your garden or backyard using artificial intelligence. Just upload a photo and describe your ideal layout — the AI will do the rest. With our AI landscape generator, you can explore multiple design options, receive plant recommendations, and visualize your dream outdoor space in minutes. This technology is perfect for homeowners, designers, and anyone looking to transform their outdoor space with AI.
+              </p>
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold">Is this tool really free?</h3>
+              <p className="text-gray-700">
+                Yes! You can use our basic AI landscaping design tool completely free to generate one design. Upgrade for HD downloads and multiple styles. Our AI landscape design free online platform allows you to try the core features at no cost, making it easy to get started with AI garden design.
+              </p>
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold">What types of landscapes can it design?</h3>
+              <p className="text-gray-700">
+                Our AI supports various styles including Japanese Zen gardens, tropical themes, modern minimalist, and cottage-style landscapes for both small and large outdoor spaces. Whether you want a backyard AI planner for a cozy patio or a smart landscaping tool for a large estate, our platform adapts to your needs.
+              </p>
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold">Do I need any design skills to use this?</h3>
+              <p className="text-gray-700">
+                Not at all! Just upload a photo of your space and tell us what you'd like to see — our AI will generate beautiful options for you automatically. The best AI landscape design tools are designed for everyone, regardless of experience.
+              </p>
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold">Can I export or download the final designs?</h3>
+              <p className="text-gray-700">
+                Yes, you can download the final AI-generated designs. With a Pro account, you can access high-resolution images and export formats like PNG or PDF. This makes it easy to share your AI garden design with contractors, friends, or family.
+              </p>
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold">Is there a mobile version?</h3>
+              <p className="text-gray-700">
+                Yes! Our website is fully mobile-responsive, so you can generate designs right from your phone or tablet. Experience the convenience of AI landscape design free online, wherever you are.
+              </p>
+            </div>
+            {/* New and expanded FAQ entries below */}
+            <div>
+              <h3 className="text-xl font-semibold">How does the AI garden design process work?</h3>
+              <p className="text-gray-700">
+                The process is simple: upload a photo of your outdoor space, answer a few questions about your preferences, and let our AI landscape generator analyze your image. The AI considers factors like lighting, climate, and existing features to create several personalized design options. You can then refine your favorite design and download the results. This smart landscaping tool makes professional-quality design accessible to everyone.
+              </p>
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold">What makes your AI landscape design tool different from traditional design services?</h3>
+              <p className="text-gray-700">
+                Our AI landscape design platform offers instant results, multiple design variations, and personalized recommendations—all at a fraction of the cost of traditional services. Unlike manual design, our AI for landscape design can quickly generate and compare options, helping you make informed decisions and visualize your dream garden before any work begins.
+              </p>
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold">Can the AI recommend plants suitable for my climate and soil?</h3>
+              <p className="text-gray-700">
+                Absolutely! Our AI garden design system uses your location and climate data to suggest plants that will thrive in your environment. The backyard AI planner also considers soil type, sunlight, and maintenance preferences, ensuring your new landscape is both beautiful and sustainable.
+              </p>
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold">Is AI landscape design suitable for professional designers?</h3>
+              <p className="text-gray-700">
+                Yes, many professional landscape designers use our AI landscape generator to speed up their workflow, generate creative ideas, and present clients with multiple options. The platform is flexible enough for both DIY homeowners and industry experts seeking the best AI landscape design solutions.
+              </p>
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold">How secure is my data and uploaded photos?</h3>
+              <p className="text-gray-700">
+                We take privacy seriously. All uploaded images and personal data are securely stored and never shared with third parties. Our AI landscape design free online tool is built with user security in mind, so you can confidently explore new designs.
+              </p>
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold">Can I use the AI landscape design tool for commercial or public spaces?</h3>
+              <p className="text-gray-700">
+                Yes! Our smart landscaping tool is suitable for residential, commercial, and public projects. Whether you are planning a community park, a business courtyard, or a private backyard, our AI for landscape design can generate tailored solutions for any scale.
+              </p>
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold">What if I want to customize the AI-generated design?</h3>
+              <p className="text-gray-700">
+                You can easily customize your AI landscape design by selecting different styles, editing features, or adding your own preferences. Our platform is designed to be flexible, allowing you to combine the power of AI garden design with your unique vision.
+              </p>
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold">How do I get started with AI landscape design free online?</h3>
+              <p className="text-gray-700">
+                Simply visit our website, upload a photo of your outdoor space, and follow the guided steps. You'll receive multiple design options in minutes, all powered by the best AI landscape design technology. No credit card or design experience required!
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Final CTA */}
       <section className="px-4 sm:px-6 lg:px-8 py-16 sm:py-20 bg-gradient-to-br from-green-600 via-green-600 to-blue-600">
         <div className="max-w-4xl mx-auto text-center">
@@ -581,14 +709,7 @@ export default function Home() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="lg:col-span-1">
               <div className="flex items-center space-x-3 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center transition-transform hover:scale-110 shadow-lg">
-                  <div className="grid grid-cols-2 gap-0.5">
-                    <div className="w-1.5 h-1.5 bg-white rounded-sm"></div>
-                    <div className="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>
-                    <div className="w-1.5 h-1.5 bg-white rounded-sm"></div>
-                    <div className="w-1.5 h-1.5 bg-white rounded-sm"></div>
-                  </div>
-                </div>
+                <img src="/ailandscapedesignlogo.png" alt="AI Landscape Design Logo" className="w-10 h-10 object-contain mr-2" />
                 <span className="text-xl font-heading font-bold text-white">AI Landscape Design</span>
               </div>
               <p className="font-body text-gray-400 leading-relaxed">Transform your outdoor space with the power of artificial intelligence.</p>
@@ -614,10 +735,9 @@ export default function Home() {
             <div>
               <h3 className="text-lg font-heading font-semibold mb-4">Company</h3>
               <ul className="space-y-2 font-body text-gray-400">
-                <li><button type="button" className="hover:text-white transition-colors">About</button></li>
-                <li><button type="button" className="hover:text-white transition-colors">Blog</button></li>
-                <li><button type="button" className="hover:text-white transition-colors">Careers</button></li>
-                <li><button type="button" className="hover:text-white transition-colors">Privacy</button></li>
+                <li><a href="/privacy-policy" className="hover:text-white transition-colors" target="_blank">Privacy Policy</a></li>
+                <li><a href="/terms-and-conditions" className="hover:text-white transition-colors" target="_blank">Terms & Conditions</a></li>
+                <li><a href="/refund-policy" className="hover:text-white transition-colors" target="_blank" >Refund Policy</a></li>
               </ul>
             </div>
           </div>

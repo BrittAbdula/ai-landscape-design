@@ -69,13 +69,29 @@ interface OpenAIResponse {
 
 export async function POST(request: Request) {
   try {
-    const { analysisResult, style } = await request.json() as GenerateRequest;
+    const body = await request.json();
+    const { analysisResult, style, customPrompt, imageUrl } = body;
 
-    if (!analysisResult || !style) {
+    if (!imageUrl) {
       return NextResponse.json(
-        { error: 'Missing analysis result or style' },
+        { error: 'Missing imageUrl' },
         { status: 400 }
       );
+    }
+
+    // If customPrompt is provided, use it directly
+    let generatePrompt: string;
+    if (customPrompt) {
+      generatePrompt = customPrompt;
+    } else {
+      if (!analysisResult || !style) {
+        return NextResponse.json(
+          { error: 'Missing analysis result or style' },
+          { status: 400 }
+        );
+      }
+      // Build generation prompt
+      generatePrompt = `Reimagine this outdoor space in a ${style} landscape aesthetic.\nKeep the original background, perspective, layout, and object scale unchanged.\nEnhance the scene with appropriate landscaping elements, vegetation, surfaces, and accessories that reflect the selected style.\nDo not remove or alter existing major features—only build upon them.\nThe result should feel realistic, detailed, and seamlessly integrated into the original photo.`;
     }
 
     // Check API key
@@ -89,55 +105,29 @@ export async function POST(request: Request) {
       );
     }
 
-    // Build generation prompt
-    const generatePrompt = `Based on the following analysis and style preference, generate a photorealistic landscape design image.
+    // Build OpenAI chat/completions payload
+    const chatPayload = {
+      model: 'gpt-4o-image',
+      messages: [
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: generatePrompt },
+            { type: 'image_url', image_url: { url: imageUrl } }
+          ]
+        }
+      ],
+      stream: false
+    };
 
-Space Analysis:
-- Type: ${analysisResult.spaceType}
-- Size: ${analysisResult.size}
-- Existing Features: ${analysisResult.existingFeatures.join(', ')}
-- Lighting: ${analysisResult.lighting}
-- Soil Type: ${analysisResult.soilType}
-- Climate: ${analysisResult.climate}
-
-Key Considerations:
-- Challenges: ${analysisResult.challenges.join(', ')}
-- Opportunities: ${analysisResult.opportunities.join(', ')}
-- Initial Recommendations: ${analysisResult.recommendations.join(', ')}
-
-Desired Style: ${style}
-
-Please generate a photorealistic image that:
-1. Maintains the basic space structure
-2. Incorporates the desired style elements
-3. Addresses the identified challenges
-4. Maximizes the opportunities
-5. Follows the initial recommendations
-6. Ensures practical and maintainable design
-7. Creates visual harmony and balance
-
-The image should be high-quality, detailed, and realistic.`;
-
-    console.log('Calling OpenAI API for design generation');
-    const testResult = {
-        "imageUrl" : "https://midjourney-plus.oss-us-west-1.aliyuncs.com/sora/e69d8a7d-6bf8-48e1-8e96-585c0c8752d8.png"
-    }
-    return NextResponse.json(testResult);
     // Call OpenAI API
-    const response = await fetch(`${apiBaseUrl}/v1/images/generations`, {
+    const response = await fetch(`${apiBaseUrl}/v1/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`,
       },
-      body: JSON.stringify({
-        model: 'gpt-image-1',
-        prompt: generatePrompt,
-        n: 1,
-        size: '1024x1024',
-        quality: 'low',
-        style: 'natural',
-      }),
+      body: JSON.stringify(chatPayload),
     });
 
     if (!response.ok) {
@@ -155,20 +145,12 @@ The image should be high-quality, detailed, and realistic.`;
 
     const data = await response.json();
     console.log('OpenAI API response:', JSON.stringify(data, null, 2));
-    
-    if (!data.data?.[0]?.url) {
-      console.error('Invalid API response structure:', JSON.stringify(data, null, 2));
-      return NextResponse.json(
-        { 
-          error: 'Invalid API response',
-          details: 'Response does not contain image URL',
-          response: data
-        },
-        { status: 500 }
-      );
-    }
 
-    return NextResponse.json({ imageUrl: data.data[0].url });
+    // Extract image URL or result from the response as needed
+    // (Assume the response contains the result in choices[0].message.content)
+    const resultContent = data.choices?.[0]?.message?.content;
+
+    return NextResponse.json({ result: resultContent, raw: data });
   } catch (error) {
     console.error('Generation error:', error);
     return NextResponse.json(

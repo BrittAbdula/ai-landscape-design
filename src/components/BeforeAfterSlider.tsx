@@ -11,8 +11,8 @@ interface BeforeAfterSliderProps {
 }
 
 export default function BeforeAfterSlider({
-  beforeImage,
-  afterImage,
+  beforeImage = "https://imagedelivery.net/DEOVdDdfeGzASe0KdtD7FA/11a27839-6c1b-447f-dc94-45db5fb73900/public",
+  afterImage = "https://imagedelivery.net/DEOVdDdfeGzASe0KdtD7FA/11a27839-6c1b-447f-dc94-45db5fb73900/public",
   showDemo = true
 }: BeforeAfterSliderProps) {
   const [sliderPosition, setSliderPosition] = useState(50);

@@ -36,34 +36,35 @@ interface DesignGenerationAnimationProps {
   style: string;
   onGenerationComplete: (result: GeneratedDesign) => void;
   onError: (error: Error) => void;
+  customPrompt?: string;
 }
 
 const generationSteps = [
   {
     id: 'style',
-    title: '应用设计风格',
-    description: '正在应用选定的设计风格...',
+    title: 'Applying Design Style',
+    description: 'Applying the selected AI landscape design style to your space...',
     icon: Wand2,
     duration: 2000,
   },
   {
     id: 'layout',
-    title: '调整布局结构',
-    description: '正在优化空间布局...',
+    title: 'Adjusting Layout Structure',
+    description: 'Optimizing the layout for your outdoor space with AI garden design...',
     icon: Layers,
     duration: 2000,
   },
   {
     id: 'details',
-    title: '优化细节',
-    description: '正在完善设计细节...',
+    title: 'Enhancing Details',
+    description: 'Refining design details using smart landscaping tools...',
     icon: Palette,
     duration: 2000,
   },
   {
     id: 'final',
-    title: '最终渲染',
-    description: '正在生成最终效果图...',
+    title: 'Final Rendering',
+    description: 'Generating the final result with the best AI landscape design generator...',
     icon: CheckCircle2,
     duration: 2000,
   },
@@ -74,13 +75,55 @@ export default function DesignGenerationAnimation({
   originalImageUrl,
   style,
   onGenerationComplete,
-  onError
+  onError,
+  customPrompt
 }: DesignGenerationAnimationProps) {
   const [progress, setProgress] = useState(0);
-  const [status, setStatus] = useState('正在生成设计...');
+  const [status, setStatus] = useState('Generating your AI Landscape Design...');
   const [currentStep, setCurrentStep] = useState(0);
   const [stepProgress, setStepProgress] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
+  const [isStepAnimating, setIsStepAnimating] = useState(true);
+
+  // 步骤动画自动切换逻辑
+  useEffect(() => {
+    if (!isStepAnimating) return;
+    if (currentStep >= generationSteps.length - 1) return; // 最后一步停住
+
+    setStepProgress(0);
+    const stepDuration = generationSteps[currentStep].duration;
+    let progressInterval: NodeJS.Timeout;
+    const start = Date.now();
+
+    // 步骤进度条动画
+    progressInterval = setInterval(() => {
+      const elapsed = Date.now() - start;
+      const percent = Math.min((elapsed / stepDuration) * 100, 100);
+      setStepProgress(percent);
+      if (percent >= 100) {
+        clearInterval(progressInterval);
+        setCompletedSteps(prev => [...prev, generationSteps[currentStep].id]);
+        setCurrentStep(prev => prev + 1);
+      }
+    }, 50);
+
+    return () => {
+      clearInterval(progressInterval);
+    };
+  }, [currentStep, isStepAnimating]);
+
+  // 生成接口响应后，补全最后一步动画
+  useEffect(() => {
+    if (currentStep === generationSteps.length - 1) {
+      setStepProgress(100);
+      setCompletedSteps(prev => {
+        if (!prev.includes(generationSteps[currentStep].id)) {
+          return [...prev, generationSteps[currentStep].id];
+        }
+        return prev;
+      });
+    }
+  }, [currentStep]);
 
   useEffect(() => {
     let mounted = true;
@@ -102,22 +145,32 @@ export default function DesignGenerationAnimation({
     // 开始生成
     const generate = async () => {
       try {
-        const result = await generateDesign(analysisResult, style);
-        
+        let result;
+        if (style === 'custom' && customPrompt) {
+          result = await generateDesign(analysisResult, style, customPrompt, originalImageUrl);
+        } else {
+          result = await generateDesign(analysisResult, style, undefined, originalImageUrl);
+        }
         if (mounted) {
           // 确保至少显示最短动画时间
           const elapsed = Date.now() - startTime;
           if (elapsed < minDuration) {
             await new Promise(resolve => setTimeout(resolve, minDuration - elapsed));
           }
-          
           setProgress(100);
-          setStatus('生成完成！');
+          setStatus('Generation Complete! Transform your outdoor space with AI.');
+          setIsStepAnimating(false); // 停止步骤动画
+          setCurrentStep(generationSteps.length - 1); // 保证停在最后一步
+          setStepProgress(100);
+          setCompletedSteps(generationSteps.map(step => step.id)); // 全部标记为完成
           onGenerationComplete(result);
         }
       } catch (error) {
         if (mounted) {
-          setStatus('生成失败');
+          setStatus('Generation Failed. Please try again with our free AI landscape design tool.');
+          setIsStepAnimating(false);
+          setCurrentStep(generationSteps.length - 1);
+          setStepProgress(100);
           onError(error as Error);
         }
       }
@@ -129,17 +182,17 @@ export default function DesignGenerationAnimation({
     return () => {
       mounted = false;
     };
-  }, [analysisResult, style, onGenerationComplete, onError]);
+  }, [analysisResult, style, onGenerationComplete, onError, customPrompt, originalImageUrl]);
 
   return (
     <div className="w-full max-w-xl mx-auto p-4">
       <div className="text-center mb-6">
         <h2 className="text-2xl font-bold mb-2">
-          AI设计生成中
+          AI Landscape Design in Progress
           <Loader2 className="inline-block ml-2 w-6 h-6 animate-spin" />
         </h2>
         <p className="text-gray-600 font-body">
-          基于{style}风格，为您的空间创造完美的景观设计...
+          Creating the perfect landscape for your space with {style} style using the best AI landscape design tools online...
         </p>
       </div>
 
@@ -149,7 +202,7 @@ export default function DesignGenerationAnimation({
           <div className="relative">
             <img
               src={originalImageUrl}
-              alt="原始空间"
+              alt="Original Space"
               className="w-full h-48 object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex items-end">
@@ -165,7 +218,7 @@ export default function DesignGenerationAnimation({
       <div className="mb-6">
         <Progress value={progress} className="h-2" />
         <div className="mt-2 text-center text-sm text-gray-600">
-          {Math.round(progress)}% 完成
+          {Math.round(progress)}% Complete
         </div>
       </div>
 
@@ -185,7 +238,7 @@ export default function DesignGenerationAnimation({
                 <div className="flex items-center justify-between mb-1">
                   <h3 className="font-medium">{step.title}</h3>
                   <Badge variant={isCompleted ? "outline" : isCurrent ? "default" : "secondary"}>
-                    {isCompleted ? '完成' : isCurrent ? '进行中' : '等待中'}
+                    {isCompleted ? 'Completed' : isCurrent ? 'In Progress' : 'Pending'}
                   </Badge>
                 </div>
                 <p className="text-sm text-gray-600">{step.description}</p>

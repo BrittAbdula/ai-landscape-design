@@ -62,16 +62,25 @@ export async function analyzeImage(imageUrl: string): Promise<AnalysisResult> {
 }
 
 // Generate design
-export async function generateDesign(analysisResult: AnalysisResult, style: string): Promise<GeneratedDesign> {
+export async function generateDesign(
+  analysisResult: AnalysisResult,
+  style: string,
+  customPrompt: string | undefined,
+  imageUrl: string
+): Promise<GeneratedDesign> {
+  type BodyType = { customPrompt: string; imageUrl: string } | { analysisResult: AnalysisResult; style: string; imageUrl: string };
+  let body: BodyType;
+  if (customPrompt) {
+    body = { customPrompt, imageUrl };
+  } else {
+    body = { analysisResult, style, imageUrl };
+  }
   const response = await fetch('/api/generate', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      analysisResult,
-      style,
-    }),
+    body: JSON.stringify(body),
   });
 
   if (!response.ok) {
@@ -79,5 +88,16 @@ export async function generateDesign(analysisResult: AnalysisResult, style: stri
     throw new Error(error.details || 'Generation failed');
   }
 
-  return response.json();
+  const data = await response.json();
+
+  // Extract image URL from markdown in data.result
+  let imageUrlResult = '';
+  if (data.result) {
+    const match = data.result.match(/!\[.*?\]\((.*?)\)/);
+    if (match && match[1]) {
+      imageUrlResult = match[1];
+    }
+  }
+
+  return { imageUrl: imageUrlResult };
 } 

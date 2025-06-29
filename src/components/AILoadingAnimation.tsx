@@ -94,7 +94,7 @@ export default function AILoadingAnimation({
   onError
 }: AILoadingAnimationProps) {
   const [progress, setProgress] = useState(0);
-  const [status, setStatus] = useState('正在分析图片...');
+  const [status, setStatus] = useState('Analyzing your space...');
   const [currentStep, setCurrentStep] = useState(0);
   const [stepProgress, setStepProgress] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);

@@ -49,70 +49,70 @@ interface StyleOption {
 
 // 模拟的分析结果
 const mockAnalysisResult: AnalysisResult = {
-  spaceType: "后院空间",
-  size: "中等大小 (约20-30平方米)",
-  existingFeatures: ["草坪", "围栏", "部分硬化地面"],
-  lighting: "充足阳光，部分阴影区域",
-  soilType: "混合土壤，排水良好",
-  climate: "温带季风气候",
-  challenges: ["空间布局相对单调", "缺乏垂直层次"],
-  opportunities: ["充足的种植空间", "良好的采光条件", "可塑性强"]
+  spaceType: "Backyard Space",
+  size: "Medium (Approx. 20-30 m²)",
+  existingFeatures: ["Lawn", "Fence", "Partial Hardscape"],
+  lighting: "Plenty of sunlight, some shaded areas",
+  soilType: "Mixed soil, well-drained",
+  climate: "Temperate monsoon climate",
+  challenges: ["Layout feels a bit plain", "Lacks vertical interest"],
+  opportunities: ["Ample planting space", "Great lighting conditions", "Highly customizable"]
 };
 
 const styleOptions: StyleOption[] = [
   {
     id: "modern-minimalist",
-    name: "现代简约风格",
-    description: "简洁线条，精选植物，注重空间感和功能性",
+    name: "Modern Minimalist",
+    description: "Clean lines, curated plants, and a focus on space and function. Effortlessly stylish with AI Landscape Design.",
     icon: <Mountain className="w-6 h-6" />,
-    features: ["简洁几何造型", "低维护植物", "现代材料运用", "功能性设计"],
+    features: ["Sleek geometric shapes", "Low-maintenance plants", "Modern materials", "Functional design"],
     suitability: 95,
-    example: "白色砾石、观赏草、几何花池、简约户外家具"
+    example: "White gravel, ornamental grasses, geometric beds, minimalist outdoor furniture"
   },
   {
     id: "cottage-garden",
-    name: "英式花园风格",
-    description: "丰富的花卉组合，自然曲线，营造浪漫氛围",
+    name: "English Cottage Garden",
+    description: "Lush blooms, natural curves, and a romantic vibe. Let AI garden design bring your dream garden to life.",
     icon: <Flower className="w-6 h-6" />,
-    features: ["丰富花卉层次", "弯曲小径", "复古元素", "季节性变化"],
+    features: ["Layered flower beds", "Winding paths", "Vintage accents", "Seasonal color"],
     suitability: 85,
-    example: "玫瑰花架、石板小径、混合花境、复古花盆"
+    example: "Rose arbors, stone walkways, mixed borders, vintage planters"
   },
   {
     id: "zen-garden",
-    name: "禅意日式风格",
-    description: "注重平衡与宁静，水景与石景的完美结合",
+    name: "Zen Japanese Garden",
+    description: "Balance, tranquility, and the perfect blend of water and stone. Experience serenity with AI landscape generator.",
     icon: <TreePine className="w-6 h-6" />,
-    features: ["水景元素", "天然石材", "苔藓植物", "冥想空间"],
+    features: ["Water features", "Natural stone", "Mossy plants", "Meditation space"],
     suitability: 78,
-    example: "竹子装饰、枯山水、石灯笼、小桥流水"
+    example: "Bamboo accents, dry rock gardens, stone lanterns, peaceful streams"
   },
   {
     id: "entertainment",
-    name: "休闲娱乐风格",
-    description: "适合聚会和家庭活动的多功能空间设计",
+    name: "Entertainment Oasis",
+    description: "The ultimate backyard AI planner for gatherings and family fun. Smart landscaping tool for every occasion.",
     icon: <Users className="w-6 h-6" />,
-    features: ["户外餐厅", "休闲座椅", "烧烤区域", "照明系统"],
+    features: ["Outdoor dining", "Lounge seating", "BBQ area", "Lighting system"],
     suitability: 88,
-    example: "露台桌椅、火炉设施、户外厨房、聚光照明"
+    example: "Patio sets, fire pit, outdoor kitchen, ambient lighting"
   },
   {
     id: "mediterranean",
-    name: "地中海风格",
-    description: "温暖的色调，香草植物，体现南欧的悠闲生活",
+    name: "Mediterranean Escape",
+    description: "Warm tones, fragrant herbs, and a taste of Southern Europe. Transform your outdoor space with AI.",
     icon: <Sun className="w-6 h-6" />,
-    features: ["暖色调材料", "香草花园", "陶土元素", "遮阳结构"],
+    features: ["Warm materials", "Herb gardens", "Terracotta accents", "Shade structures"],
     suitability: 72,
-    example: "橄榄树、薰衣草、陶土花盆、藤蔓遮阳棚"
+    example: "Olive trees, lavender, terracotta pots, vine-covered pergola"
   },
   {
     id: "tropical",
-    name: "热带风情风格",
-    description: "热带植物，创造度假胜地般的氛围",
+    name: "Tropical Paradise",
+    description: "Bold foliage and vacation vibes. The best AI landscape design for a lush, exotic retreat.",
     icon: <Coffee className="w-6 h-6" />,
-    features: ["大型叶片植物", "热带色彩", "水景装饰", "度假氛围"],
+    features: ["Large-leaf plants", "Tropical colors", "Water features", "Resort atmosphere"],
     suitability: 65,
-    example: "芭蕉叶、棕榈树、竹制装饰、热带花卉"
+    example: "Banana leaves, palm trees, bamboo decor, tropical flowers"
   }
 ];
 
@@ -148,55 +148,55 @@ export default function StyleSelection({ uploadedImage, analysisResult, onStyleS
 
   return (
     <div className="space-y-8">
-      {/* 头部 */}
+      {/* Header */}
       <div className="text-center">
         <div className="w-16 h-16 bg-gradient-to-br from-green-600 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
           <Eye className="w-8 h-8 text-white" />
         </div>
         <h2 className="text-3xl sm:text-4xl font-heading font-bold text-gray-900 mb-4">
-          图片分析完成！
+          AI Landscape Design Complete!
         </h2>
         <p className="text-lg font-body text-gray-600 max-w-2xl mx-auto">
-          我们已经分析了您的空间，现在请选择您喜欢的设计风格，或者描述您的理想设计。
+          We've analyzed your outdoor space with our smart landscaping tool. Now, choose your favorite design style or describe your dream garden—let the best AI landscape design engine do the rest!
         </p>
       </div>
 
-      {/* 分析结果 */}
+      {/* Analysis Results */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* 图片预览 */}
+        {/* Image Preview */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg font-heading">您的空间</CardTitle>
+            <CardTitle className="text-lg font-heading">Your Space</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="aspect-video rounded-lg overflow-hidden mb-4">
               <img
                 src={uploadedImage}
-                alt="上传的空间图片"
+                alt="Uploaded outdoor space"
                 className="w-full h-full object-cover"
               />
             </div>
           </CardContent>
         </Card>
 
-        {/* 分析结果 */}
+        {/* Analysis Results */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg font-heading">空间分析</CardTitle>
-            <CardDescription>基于AI分析的空间特征</CardDescription>
+            <CardTitle className="text-lg font-heading">AI Analysis</CardTitle>
+            <CardDescription>Key features detected by our AI garden design engine</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <h4 className="font-medium text-gray-900 mb-2">基本信息</h4>
+              <h4 className="font-medium text-gray-900 mb-2">Essentials</h4>
               <div className="space-y-1 text-sm text-gray-600">
-                <p><span className="font-medium">空间类型：</span>{currentAnalysisResult.spaceType}</p>
-                <p><span className="font-medium">大小：</span>{currentAnalysisResult.size}</p>
-                <p><span className="font-medium">光照条件：</span>{currentAnalysisResult.lighting}</p>
+                <p><span className="font-medium">Type:</span> {currentAnalysisResult.spaceType}</p>
+                <p><span className="font-medium">Size:</span> {currentAnalysisResult.size}</p>
+                <p><span className="font-medium">Lighting:</span> {currentAnalysisResult.lighting}</p>
               </div>
             </div>
 
             <div>
-              <h4 className="font-medium text-gray-900 mb-2">现有特征</h4>
+              <h4 className="font-medium text-gray-900 mb-2">Existing Features</h4>
               <div className="flex flex-wrap gap-1">
                 {currentAnalysisResult.existingFeatures.map((feature) => (
                   <Badge key={feature} variant="secondary" className="text-xs">
@@ -207,7 +207,7 @@ export default function StyleSelection({ uploadedImage, analysisResult, onStyleS
             </div>
 
             <div>
-              <h4 className="font-medium text-gray-900 mb-2">设计机会</h4>
+              <h4 className="font-medium text-gray-900 mb-2">Opportunities</h4>
               <ul className="text-sm text-gray-600 space-y-1">
                 {currentAnalysisResult.opportunities.map((opportunity, index) => (
                   <li key={index} className="flex items-start">
@@ -221,12 +221,12 @@ export default function StyleSelection({ uploadedImage, analysisResult, onStyleS
         </Card>
       </div>
 
-      {/* 风格选择 */}
+      {/* Style Selection */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl font-heading">选择您的设计风格</CardTitle>
+          <CardTitle className="text-xl font-heading">Choose Your AI Landscape Design Style</CardTitle>
           <CardDescription>
-            我们根据您的空间特点推荐了以下风格，匹配度越高越适合您的空间
+            Our AI for landscape design recommends these styles for your space. The higher the match, the more your backyard will thrive!
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -275,14 +275,14 @@ export default function StyleSelection({ uploadedImage, analysisResult, onStyleS
                   </div>
 
                   <p className="text-xs text-gray-500 italic">
-                    示例：{style.example}
+                    Example: {style.example}
                   </p>
                 </CardContent>
               </Card>
             ))}
           </div>
 
-          {/* 自定义描述选项 */}
+          {/* Custom Prompt Option */}
           <div className="border-t pt-6">
             <div className="flex items-center space-x-3 mb-4">
               <Button
@@ -291,23 +291,23 @@ export default function StyleSelection({ uploadedImage, analysisResult, onStyleS
                 className={useCustomPrompt ? "bg-green-600 hover:bg-green-700" : ""}
               >
                 <Palette className="w-4 h-4 mr-2" />
-                自定义设计描述
+                Custom Design Description
               </Button>
               <span className="text-sm text-gray-600">
-                或者告诉我们您的具体想法
+                Or tell us your unique vision for your landscape AI design
               </span>
             </div>
 
             {useCustomPrompt && (
               <div className="space-y-3">
                 <Textarea
-                  placeholder="请描述您理想中的庭院设计...&#10;例如：我想要一个现代简约的花园，有水景和休息区，适合晚上放松..."
+                  placeholder={"Describe your dream backyard...\nFor example: I want a modern minimalist garden with water features and a lounge area, perfect for relaxing in the evening. (Tip: Mention style, colors, plant types, functional zones, or anything you want!)"}
                   value={customPrompt}
                   onChange={(e) => setCustomPrompt(e.target.value)}
                   className="min-h-[100px] resize-none"
                 />
                 <p className="text-xs text-gray-500">
-                  提示：您可以描述想要的风格、颜色、植物类型、功能区域等任何想法
+                  Tip: Share your style, colors, favorite plants, or any ideas—our AI landscape design free tool will make it real!
                 </p>
               </div>
             )}
@@ -315,14 +315,14 @@ export default function StyleSelection({ uploadedImage, analysisResult, onStyleS
         </CardContent>
       </Card>
 
-      {/* 操作按钮 */}
+      {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row gap-4 justify-between">
         <Button
           variant="outline"
           onClick={onBack}
           className="border-gray-300 text-gray-600 hover:bg-gray-50"
         >
-          ← 重新上传图片
+          ← Upload a New Image
         </Button>
 
         <Button
@@ -331,7 +331,7 @@ export default function StyleSelection({ uploadedImage, analysisResult, onStyleS
           className="bg-green-600 hover:bg-green-700 text-white hover-lift disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Sparkles className="w-4 h-4 mr-2" />
-          开始生成设计方案
+          Generate My AI Landscape Design
           <ArrowRight className="w-4 h-4 ml-2" />
         </Button>
       </div>
