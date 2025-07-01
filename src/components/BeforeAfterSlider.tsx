@@ -8,12 +8,14 @@ interface BeforeAfterSliderProps {
   beforeImage?: string;
   afterImage?: string;
   showDemo?: boolean;
+  styleName?: string;
 }
 
 export default function BeforeAfterSlider({
   beforeImage = "https://imagedelivery.net/DEOVdDdfeGzASe0KdtD7FA/11a27839-6c1b-447f-dc94-45db5fb73900/public",
-  afterImage = "https://imagedelivery.net/DEOVdDdfeGzASe0KdtD7FA/11a27839-6c1b-447f-dc94-45db5fb73900/public",
-  showDemo = true
+  afterImage = "/after-min.png",
+  showDemo = true,
+  styleName = "Zen Japanese Garden"
 }: BeforeAfterSliderProps) {
   const [sliderPosition, setSliderPosition] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
@@ -91,7 +93,7 @@ export default function BeforeAfterSlider({
           <div className="absolute inset-0">
             {beforeImage ? (
               <img
-                src={beforeImage}
+                src={afterImage}
                 alt="Before"
                 className="w-full h-full object-cover"
                 draggable={false}
@@ -113,7 +115,7 @@ export default function BeforeAfterSlider({
           >
             {afterImage ? (
               <img
-                src={afterImage}
+                src={beforeImage}
                 alt="After"
                 className="w-full h-full object-cover"
                 draggable={false}
@@ -150,8 +152,11 @@ export default function BeforeAfterSlider({
           <div className="absolute top-4 left-4">
             <Badge className="bg-gradient-to-r from-amber-600 to-orange-600 text-white font-body border border-amber-500/20">Before</Badge>
           </div>
-          <div className="absolute top-4 right-4">
+          <div className="absolute top-4 right-4 flex flex-col items-end space-y-2">
             <Badge className="bg-gradient-to-r from-green-600 to-blue-600 text-white font-body border border-green-500/20">After</Badge>
+            <div className="bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md shadow-sm">
+              <p className="text-xs font-medium text-gray-700 font-body">{styleName}</p>
+            </div>
           </div>
         </div>
 

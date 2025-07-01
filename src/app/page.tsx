@@ -43,7 +43,7 @@ export default function Home() {
   const designStudioRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (appState === 'uploading' || appState === 'results') {
+    if (appState === 'uploading' || appState === 'results' || appState === 'generating') {
       designStudioRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [appState]);
@@ -94,6 +94,39 @@ export default function Home() {
 
   const handleGetStarted = () => {
     setAppState('uploading');
+  };
+
+  const handleReturnHome = () => {
+    // Reset all state
+    setAppState('home');
+    setUploadedFile(null);
+    if (uploadedImageUrl) {
+      URL.revokeObjectURL(uploadedImageUrl);
+    }
+    setUploadedImageUrl('');
+    setCloudinaryImageUrl('');
+    setSelectedStyle('');
+    setCustomPrompt('');
+    setAnalysisResult(null);
+    setGeneratedImageUrl('');
+    
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleLinkClick = (href: string) => {
+    // For external links that open in new tab, just open them
+    window.open(href, '_blank');
+    // Keep current page at top for better UX
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
+    e.preventDefault();
+    const element = document.getElementById(targetId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   };
 
   const InteractiveDesigner = () => {
@@ -206,19 +239,40 @@ export default function Home() {
       <header className="px-4 sm:px-6 lg:px-8 h-16 flex items-center border-b border-green-100 sticky top-0 bg-white/90 backdrop-blur-sm z-50">
         <div className="flex items-center justify-between w-full max-w-7xl mx-auto">
           <div className="flex items-center space-x-3">
-            <div className="flex items-center space-x-2">
+            <button 
+              onClick={handleReturnHome}
+              className="flex items-center space-x-2 hover:opacity-80 transition-opacity duration-200 cursor-pointer"
+            >
               <img src="/ailandscapedesignlogo.png" alt="AI Landscape Design Logo" className="w-10 h-10 object-contain mr-2" />
               <span className="text-xl font-heading font-bold bg-gradient-to-r from-green-700 to-blue-600 bg-clip-text text-transparent">
                 AI Landscape Design
               </span>
-            </div>
+            </button>
           </div>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <a href="#features" className="text-gray-600 hover:text-green-600 font-body transition-colors">Features</a>
-            <a href="#how-it-works" className="text-gray-600 hover:text-green-600 font-body transition-colors">How It Works</a>
-            <a href="#pricing" className="text-gray-600 hover:text-green-600 font-body transition-colors">Pricing</a>
+            <a 
+              href="#features" 
+              onClick={(e) => handleAnchorClick(e, 'features')}
+              className="text-gray-600 hover:text-green-600 font-body transition-colors cursor-pointer"
+            >
+              Features
+            </a>
+            <a 
+              href="#how-it-works" 
+              onClick={(e) => handleAnchorClick(e, 'how-it-works')}
+              className="text-gray-600 hover:text-green-600 font-body transition-colors cursor-pointer"
+            >
+              How It Works
+            </a>
+            <a 
+              href="#pricing" 
+              onClick={(e) => handleAnchorClick(e, 'pricing')}
+              className="text-gray-600 hover:text-green-600 font-body transition-colors cursor-pointer"
+            >
+              Pricing
+            </a>
             <Button variant="outline" className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white hover-lift">
               Sign In
             </Button>
@@ -233,13 +287,34 @@ export default function Home() {
             </SheetTrigger>
             <SheetContent side="right" className="w-72">
               <div className="flex flex-col space-y-4 mt-8">
-                <a href="#features" className="text-lg font-body text-gray-700 hover:text-green-600 transition-colors" onClick={() => setIsMenuOpen(false)}>
+                <a 
+                  href="#features" 
+                  onClick={(e) => {
+                    handleAnchorClick(e, 'features');
+                    setIsMenuOpen(false);
+                  }}
+                  className="text-lg font-body text-gray-700 hover:text-green-600 transition-colors cursor-pointer"
+                >
                   Features
                 </a>
-                <a href="#how-it-works" className="text-lg font-body text-gray-700 hover:text-green-600 transition-colors" onClick={() => setIsMenuOpen(false)}>
+                <a 
+                  href="#how-it-works" 
+                  onClick={(e) => {
+                    handleAnchorClick(e, 'how-it-works');
+                    setIsMenuOpen(false);
+                  }}
+                  className="text-lg font-body text-gray-700 hover:text-green-600 transition-colors cursor-pointer"
+                >
                   How It Works
                 </a>
-                <a href="#pricing" className="text-lg font-body text-gray-700 hover:text-green-600 transition-colors" onClick={() => setIsMenuOpen(false)}>
+                <a 
+                  href="#pricing" 
+                  onClick={(e) => {
+                    handleAnchorClick(e, 'pricing');
+                    setIsMenuOpen(false);
+                  }}
+                  className="text-lg font-body text-gray-700 hover:text-green-600 transition-colors cursor-pointer"
+                >
                   Pricing
                 </a>
                 <Button variant="outline" className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white mt-4">
@@ -717,9 +792,33 @@ export default function Home() {
             <div>
               <h3 className="text-lg font-heading font-semibold mb-4">Product</h3>
               <ul className="space-y-2 font-body text-gray-400">
-                <li><a href="#features" className="hover:text-white transition-colors">Features</a></li>
-                <li><a href="#how-it-works" className="hover:text-white transition-colors">How It Works</a></li>
-                <li><a href="#pricing" className="hover:text-white transition-colors">Pricing</a></li>
+                <li>
+                  <a 
+                    href="#features" 
+                    onClick={(e) => handleAnchorClick(e, 'features')}
+                    className="hover:text-white transition-colors cursor-pointer"
+                  >
+                    Features
+                  </a>
+                </li>
+                <li>
+                  <a 
+                    href="#how-it-works" 
+                    onClick={(e) => handleAnchorClick(e, 'how-it-works')}
+                    className="hover:text-white transition-colors cursor-pointer"
+                  >
+                    How It Works
+                  </a>
+                </li>
+                <li>
+                  <a 
+                    href="#pricing" 
+                    onClick={(e) => handleAnchorClick(e, 'pricing')}
+                    className="hover:text-white transition-colors cursor-pointer"
+                  >
+                    Pricing
+                  </a>
+                </li>
                 <li><button type="button" className="hover:text-white transition-colors">Examples</button></li>
               </ul>
             </div>
@@ -735,14 +834,35 @@ export default function Home() {
             <div>
               <h3 className="text-lg font-heading font-semibold mb-4">Company</h3>
               <ul className="space-y-2 font-body text-gray-400">
-                <li><a href="/privacy-policy" className="hover:text-white transition-colors" target="_blank">Privacy Policy</a></li>
-                <li><a href="/terms-and-conditions" className="hover:text-white transition-colors" target="_blank">Terms & Conditions</a></li>
-                <li><a href="/refund-policy" className="hover:text-white transition-colors" target="_blank" >Refund Policy</a></li>
+                <li>
+                  <button 
+                    onClick={() => handleLinkClick('/privacy-policy')} 
+                    className="hover:text-white transition-colors text-left"
+                  >
+                    Privacy Policy
+                  </button>
+                </li>
+                <li>
+                  <button 
+                    onClick={() => handleLinkClick('/terms-and-conditions')} 
+                    className="hover:text-white transition-colors text-left"
+                  >
+                    Terms & Conditions
+                  </button>
+                </li>
+                <li>
+                  <button 
+                    onClick={() => handleLinkClick('/refund-policy')} 
+                    className="hover:text-white transition-colors text-left"
+                  >
+                    Refund Policy
+                  </button>
+                </li>
               </ul>
             </div>
           </div>
           <div className="border-t border-gray-800 pt-8 mt-8 text-center font-body text-gray-400">
-            <p>&copy; 2024 AI Landscape Design. All rights reserved.</p>
+            <p>&copy; 2025 AI Landscape Design. All rights reserved.</p>
           </div>
         </div>
       </footer>
